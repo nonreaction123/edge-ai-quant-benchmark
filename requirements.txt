@@ -1,0 +1,11 @@
+# Môi trường phát triển (x86). On-device may require platform-specific packages.
+tensorflow>=2.10.0
+numpy
+opencv-python
+psutil
+pandas
+matplotlib
+tqdm
+pyyaml
+# On Raspberry Pi / Jetson use tflite-runtime or TensorRT specific packages instead of full TF
+# Example for RPi: tflite-runtime==2.10.0 (install per-platform wheels)
