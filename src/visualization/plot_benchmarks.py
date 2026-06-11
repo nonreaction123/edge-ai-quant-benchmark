@@ -1,24 +1,43 @@
-#!/usr/bin/env python3
-import pandas as pd
-import matplotlib.pyplot as plt
-import sys, os
+"""Plot benchmark CSV into a latency/throughput figure."""
 
-def plot(csv_path, out_png):
-    df = pd.read_csv(csv_path)
-    # Example: compare latency_p50_ms by quant_type for each model_name
-    pivot = df.pivot_table(index="model_name", columns="quant_type", values="latency_p50_ms")
-    ax = pivot.plot(kind="bar", figsize=(10,5))
-    ax.set_ylabel("Latency p50 (ms)")
-    ax.set_title("Latency comparison by quantization type")
-    plt.tight_layout()
-    os.makedirs(os.path.dirname(out_png) or ".", exist_ok=True)
-    plt.savefig(out_png)
-    print("Saved plot:", out_png)
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--csv", required=True, help="Path to reports/benchmark_results.csv")
+    parser.add_argument("--output", required=True, help="Output PNG path")
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.csv)
+    out = Path(args.output)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    labels = df["quant_type"].tolist()
+    x = range(len(labels))
+
+    fig, ax1 = plt.subplots(figsize=(9, 5))
+    ax1.bar([i - 0.18 for i in x], df["latency_p50_ms"], width=0.36, label="Latency p50 (ms)")
+    ax1.set_ylabel("Latency p50 (ms)")
+    ax1.set_xticks(list(x))
+    ax1.set_xticklabels(labels, rotation=15)
+
+    ax2 = ax1.twinx()
+    ax2.bar([i + 0.18 for i in x], df["throughput_fps"], width=0.36, label="Throughput (FPS)", alpha=0.6)
+    ax2.set_ylabel("Throughput (FPS)")
+
+    ax1.set_title("Edge AI quantization benchmark")
+    ax1.grid(axis="y", alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(out, dpi=160)
+    print(f"Saved plot: {out}")
+
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: plot_benchmarks.py <csv_path> <out_png>")
-        sys.exit(1)
-    csv_path = sys.argv[1]
-    out_png = sys.argv[2]
-    plot(csv_path, out_png)
+    main()

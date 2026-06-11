@@ -1,13 +1,5 @@
-venv/
 .venv/
 __pycache__/
 *.pyc
 outputs/
-data/raw/
-data/processed/
-reports/figures/*
-*.h5
-*.tflite
-*.onnx
-*.pt
-.env
+.DS_Store

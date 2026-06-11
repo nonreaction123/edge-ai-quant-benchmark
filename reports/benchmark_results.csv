@@ -1,1 +1,4 @@
-model_name,quant_type,file_path,size_mb,latency_p50_ms,latency_p95_ms,throughput_fps,ram_usage_mb,device,date,notes
+model_name,quant_type,file_path,size_mb,latency_p50_ms,latency_p95_ms,throughput_fps,ram_usage_mb,accuracy,device,date,notes
+tiny_linear_edge_classifier_fp32,fp32,/mnt/data/edge-ai-quant-benchmark-p3-runnable/outputs/models/tiny_linear_edge_classifier_fp32.npz,0.001732,0.012655,0.015214,70695.243,0.0,1.0,x86_64,2026-06-11,numpy edge baseline; replace with TFLite/TensorRT for hardware kernels
+tiny_linear_edge_classifier_dynamic_float16,dynamic_float16,/mnt/data/edge-ai-quant-benchmark-p3-runnable/outputs/models/tiny_linear_edge_classifier_dynamic_float16.npz,0.001278,0.009644,0.020257,82583.316,0.0,1.0,x86_64,2026-06-11,numpy edge baseline; replace with TFLite/TensorRT for hardware kernels
+tiny_linear_edge_classifier_int8,int8,/mnt/data/edge-ai-quant-benchmark-p3-runnable/outputs/models/tiny_linear_edge_classifier_int8.npz,0.00148,0.012066,0.023528,69094.971,0.0,1.0,x86_64,2026-06-11,numpy edge baseline; replace with TFLite/TensorRT for hardware kernels

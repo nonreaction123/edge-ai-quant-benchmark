@@ -1,0 +1,20 @@
+seed: 42
+data:
+  n_train: 2500
+  n_test: 600
+  n_features: 64
+  n_classes: 4
+model:
+  name: tiny_linear_edge_classifier
+training:
+  epochs: 80
+  learning_rate: 0.25
+benchmark:
+  iterations: 300
+  warmup_runs: 20
+  batch_size: 1
+outputs:
+  model_dir: outputs/models
+  report_csv: reports/benchmark_results.csv
+  figure_path: reports/figures/latency_plot.png
+  demo_gif: assets/demo.gif

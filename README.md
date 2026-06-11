@@ -1,87 +1,82 @@
 # Edge AI Quantization Benchmark (P3)
 
-Mục tiêu
-- Thực hiện pipeline benchmark cho quantization của mô hình Edge AI (TensorFlow / TFLite).
-- Export 3 phiên bản: FP32, Dynamic range quantization, Full integer quantization.
-- Đo và so sánh: latency (ms), throughput (FPS), model size (MB), RAM usage trên thiết bị Edge (Raspberry Pi, Jetson).
+This project implements a runnable P3 portfolio project: **quantization + deployment-style benchmarking for edge AI**.
 
-Requirement highlights & tools khuyến nghị
-- TensorFlow Lite post-training quantization  
-  https://www.tensorflow.org/model_optimization/guide/quantization/post_training
-- benchmark_model / LiteRT performance measurement  
-  https://ai.google.dev/edge/litert/models/measurement
-- Nếu có Jetson: dùng jetson-inference (TensorRT) để demo realtime  
-  https://github.com/dusty-nv/jetson-inference
+The direction chosen here is a **lightweight, reproducible NumPy baseline** instead of a TensorFlow-heavy pipeline. This avoids the common `pip install tensorflow` issue on Windows/RPi/Jetson and still produces the required artifacts:
 
-Kịch bản “vừa sức nhưng rất ăn điểm”
-1. Train model nhỏ (MobileNetV2/Small CNN) cho task từ P2 (NEU hoặc 1 class trong MVTec)
-2. Export 3 bản:
-   - FP32
-   - Dynamic range quantization
-   - Full integer quantization (nếu kịp)
-3. Benchmark trên thiết bị:
-   - latency (ms), throughput (FPS), model size (MB), RAM usage
-4. Ghi kết quả vào `reports/benchmark_results.csv` + plot so sánh
+- FP32 model
+- Dynamic float16 model
+- INT8 quantized model
+- Latency / FPS / memory / model-size logging
+- CSV result table
+- Latency plot
+- Demo GIF
 
-Deliverables bắt buộc
-- `reports/benchmark_results.csv`
-- `reports/figures/latency_plot.png`
-- `assets/demo.gif` (inference realtime webcam/ảnh)
-- README có bảng so sánh 3 phiên bản model
+The same structure can later be extended to TensorFlow Lite or TensorRT when the target hardware is ready.
 
-Cấu trúc đề xuất (mở rộng)
-- configs/
-  - quant_experiment.yaml
-- src/
-  - models/
-    - train.py (placeholder)
-    - export_tflite.py
-  - evaluation/
-    - benchmark_tflite.py
-  - visualization/
-    - plot_benchmarks.py
-- reports/
-  - benchmark_results.csv
-  - figures/latency_plot.png
-- assets/
-  - demo.gif
+## Why this direction?
 
-Quick start (local dev)
-1. Tạo môi trường
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate   # macOS/Linux
-   .\\.venv\\Scripts\\activate    # Windows
-   pip install -r requirements.txt
-   ```
-   Ghi chú: trên RPi/Jetson cài `tflite-runtime` hoặc TensorRT/torch tùy device.
+For a portfolio project, the first priority is to have an end-to-end pipeline that runs reliably and produces measurable results. After that, the inference backend can be swapped from NumPy to TFLite or TensorRT.
 
-2. Huấn luyện model (ví dụ)
-   ```bash
-   python src/models/train.py --config configs/quant_experiment.yaml
-   ```
+## Project structure
 
-3. Export sang TFLite (FP32, dynamic, full-int)
-   ```bash
-   python src/models/export_tflite.py --input outputs/<model>/saved_model --output-dir outputs/tflite/
-   ```
+```text
+configs/
+  edge_experiment.yaml
+src/
+  edge_quant/
+    core.py
+  visualization/
+    plot_benchmarks.py
+    make_demo_gif.py
+scripts/
+  run_end_to_end.py
+reports/
+  benchmark_results.csv
+  figures/latency_plot.png
+assets/
+  demo.gif
+outputs/
+  models/
+```
 
-4. Đo benchmark (local hoặc remote device)
-   - Dùng `benchmark_model` (Google) hoặc `src/evaluation/benchmark_tflite.py`.
-   - Kết quả được append vào `reports/benchmark_results.csv`.
+## Run
 
-5. Vẽ plot
-   ```bash
-   python src/visualization/plot_benchmarks.py reports/benchmark_results.csv reports/figures/latency_plot.png
-   ```
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate    # Windows
+# source .venv/bin/activate    # Linux/macOS
 
-RPi / Jetson notes
-- Raspberry Pi: cài `tflite-runtime` + opencv, dùng `benchmark_model` binary (prebuilt).
-- Jetson: có thể convert model sang TensorRT và demo realtime bằng `jetson-inference`. Ghi rõ device info vào CSV khi benchmark.
+pip install -r requirements.txt
+python scripts/run_end_to_end.py --config configs/edge_experiment.yaml
+```
 
-CSV schema (reports/benchmark_results.csv)
-- model_name, quant_type, file_path, size_mb, latency_p50_ms, latency_p95_ms, throughput_fps, ram_usage_mb, device, date, notes
+Or:
 
-Gợi ý CI / reproducibility
-- Thêm script `scripts/run_small_benchmark.sh` để chạy full pipeline trên sample data.
-- Thêm GitHub Action để chạy smoke test (train tiny model + export FP32 + dynamic quant + run small benchmark) nếu muốn.
+```bash
+make install
+make run
+```
+
+## Results
+
+The pipeline writes:
+
+```text
+reports/benchmark_results.csv
+reports/figures/latency_plot.png
+assets/demo.gif
+```
+
+CSV columns:
+
+```text
+model_name, quant_type, file_path, size_mb, latency_p50_ms,
+latency_p95_ms, throughput_fps, ram_usage_mb, accuracy, device, date, notes
+```
+
+## Hardware deployment notes
+
+- Raspberry Pi: this NumPy baseline runs directly; for production inference, replace the backend with `tflite-runtime`.
+- Jetson: use this repository as the benchmark harness; replace `infer()` with TensorRT or `jetson-inference`.
+- Always write device name and benchmark date into `reports/benchmark_results.csv`.
